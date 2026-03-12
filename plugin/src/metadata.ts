@@ -1,8 +1,8 @@
 import { PluginMetadata } from '@ds-wizard/plugin-sdk/types'
 
 export const pluginMetadata: PluginMetadata = {
-    uuid: '<uuid>',
-    name: 'DSW Plugin',
-    version: '1.0.0',
-    description: 'This is a DSW Plugin created from the template.',
+    uuid: '55f16aea-5a53-4adb-a8a1-8d72109cb50d',
+    name: 'FIP Version',
+    version: '0.1.0',
+    description: 'Project action plugin for FAIR Wizard to enable easier FIP version management and submission.',
 }

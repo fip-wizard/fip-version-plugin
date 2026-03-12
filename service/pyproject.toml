@@ -1,14 +1,14 @@
 [project]
-name = "plugin-service"
-version = "1.0.0"
-description = "Plugin Service for ..."
-keywords = ["wizard", "plugin"]
+name = "fip-version-plugin-service"
+version = "0.1.0"
+description = "Plugin Service for FIP Version Plugin"
+keywords = ["wizard", "plugin", "fip", "version", "project-action"]
 license = "MIT"
 authors = [
-    { name = "...", email = "..." }
+    { name = "Marek Suchánek", email = "marek.suchanek@fair-wizard.com" },
 ]
 classifiers = [
-    "Development Status :: 5 - Production/Stable",
+    "Development Status :: 4 - Beta",
     "Framework :: FastAPI",
     "License :: OSI Approved :: MIT",
     "Programming Language :: Python",
@@ -18,6 +18,10 @@ classifiers = [
 requires-python = ">=3.13, <4"
 dependencies = [
     "fastapi>=0.120,<1.0",
+    "httpx >=0.28, <1.0",
+    "pydantic >=2.12, <3.0",
+    "rdflib >=7.4, <8.0",
+    "websocket-client >=1.9, <2.0",
 ]
 
 [dependency-groups]

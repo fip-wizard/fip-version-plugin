@@ -1,23 +1,44 @@
+import { makeNullCodec } from '@ds-wizard/plugin-sdk'
 import { PluginBuilder } from '@ds-wizard/plugin-sdk/core'
 import { Plugin } from '@ds-wizard/plugin-sdk/types'
 
-import { SettingsDataCodec } from './data/settings-data'
-import { UserSettingsDataCodec } from './data/user-settings-data'
+import FIPVersionProjectAction from '@/components/FIPVersionProjectAction'
+import SettingsComponent from '@/components/SettingsComponent'
+
+import { SettingsData, SettingsDataCodec } from './data/settings-data'
 import { pluginMetadata } from './metadata'
 
-export default function (settingsInput: unknown, userSettingsInput: unknown): Plugin {
-    // Use settings for plugin initialization or delete
-    // If you don't use settings change function arguments to _settingsInput and _userSettingsInput
+export default function (settingsInput: unknown, _userSettingsInput: unknown): Plugin {
     const settings = SettingsDataCodec.parseOrInit(settingsInput)
-    const userSettings = UserSettingsDataCodec.parseOrInit(userSettingsInput)
 
     const plugin: Plugin = PluginBuilder.create(
         pluginMetadata,
         SettingsDataCodec,
-        UserSettingsDataCodec,
+        makeNullCodec(),
     )
-        // Initialize your plugin components here
+        .addProjectAction(
+            'FIP Version',
+            'x-fip-version-project-action',
+            FIPVersionProjectAction,
+            [
+                'gofair:FIP:^5',
+                'gofair:reference-fip:^1',
+                ...parseExtraKmPatterns(settings),
+            ],
+        )
+        .addSettings('x-fip-version-settings', SettingsComponent)
         .createPlugin()
 
     return plugin
+}
+
+function parseExtraKmPatterns(settings: SettingsData): string[] {
+    if (!settings.extraKmPatterns) {
+        return []
+    }
+
+    return settings.extraKmPatterns
+        .split(/[,\n]/)
+        .map((name) => name.trim())
+        .filter(Boolean)
 }

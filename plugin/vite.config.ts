@@ -18,10 +18,16 @@ export default defineConfig(({ mode }) => {
             },
         },
 
+        preview: {
+            cors: true,
+        },
+
         // Ensure the bundle works in a plain browser host (no Node "process")
         define: {
-            '__API_URL__': JSON.stringify(
-                mode === 'production' ? `/gateway/plugins/${pluginMetadata.uuid}` : 'http://localhost:8000'
+            __API_URL__: JSON.stringify(
+                mode === 'production'
+                    ? `/gateway/plugins/${pluginMetadata.uuid}`
+                    : 'http://localhost:8000',
             ),
             'process.env.NODE_ENV': JSON.stringify(isProd ? 'production' : 'development'),
             'process.env': JSON.stringify({}),
