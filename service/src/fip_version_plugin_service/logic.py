@@ -9,16 +9,23 @@ import websocket
 
 from . import schemas
 
-
-VERSION_REPLY_PATH = 'c1248b82-0538-4780-a0b4-983f632b1615.1c3b8b33-d9b6-435d-a69e-498f09a51fca'
-RDF_FIP_TYPE = rdflib.URIRef('https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile')
-RDF_RFIP_TYPE = rdflib.URIRef('https://w3id.org/fair/fip/terms/Reference-FAIR-Implementation-Profile')
+VERSION_REPLY_PATH = (
+    'c1248b82-0538-4780-a0b4-983f632b1615.1c3b8b33-d9b6-435d-a69e-498f09a51fca'
+)
+RDF_FIP_TYPE = rdflib.URIRef(
+    'https://w3id.org/fair/fip/terms/FAIR-Implementation-Profile'
+)
+RDF_RFIP_TYPE = rdflib.URIRef(
+    'https://w3id.org/fair/fip/terms/Reference-FAIR-Implementation-Profile'
+)
 RDF_VERSION = rdflib.URIRef('https://schema.org/version')
 USER_AGENT = 'fip-version-plugin/0.1.0'
 NANOPUB_TEMPLATE_PREFIX = 'dsw:nanopub-template:'
 
 
-async def prepare_action(api_url: str, req: schemas.PrepareRequest) -> schemas.PrepareResponse:
+async def prepare_action(
+    api_url: str, req: schemas.PrepareRequest
+) -> schemas.PrepareResponse:
     async with httpx.AsyncClient() as client:
         wizard = APIClient(
             api_url=api_url,
@@ -27,11 +34,13 @@ async def prepare_action(api_url: str, req: schemas.PrepareRequest) -> schemas.P
         )
         # Get questionnaire
         try:
-            questionnaire_data = await wizard.fetch_questionnaire(req.project_uuid)
+            questionnaire_data = await wizard.fetch_questionnaire(
+                req.project_uuid
+            )
         except httpx.HTTPError as e:
             return schemas.PrepareResponse(
                 ok=False,
-                message=f'Failed to fetch questionnaire: {str(e)}'
+                message=f'Failed to fetch questionnaire: {e!s}',
             )
         # Extract questionnaire version
         reply = questionnaire_data['replies'].get(VERSION_REPLY_PATH, {})
@@ -42,7 +51,7 @@ async def prepare_action(api_url: str, req: schemas.PrepareRequest) -> schemas.P
         except httpx.HTTPError as e:
             return schemas.PrepareResponse(
                 ok=False,
-                message=f'Failed to fetch documents: {str(e)}'
+                message=f'Failed to fetch documents: {e!s}',
             )
         documents = documents_data.get('_embedded', {}).get('documents', [])
         submitted_versions = []
@@ -55,22 +64,27 @@ async def prepare_action(api_url: str, req: schemas.PrepareRequest) -> schemas.P
                     schemas.SubmittedVersion(
                         uri=submission.get('location', ''),
                         version=None,
-                        submittedAt=submission.get('createdAt', None),
-                    )
+                        submitted_at=submission.get('createdAt', None),
+                    ),
                 )
         await _find_fip_versions(submitted_versions)
 
         return schemas.PrepareResponse(
             ok=True,
             message='Action is ready',
-            questionnaireVersion=questionnaire_version,
+            questionnaire_version=questionnaire_version,
             submittedVersions=submitted_versions,
             debug=questionnaire_data,
         )
 
 
-async def _update_version_in_questionnaire(api_url: str, project_uuid: str, user_token: str,
-                                           version: str, description: str):
+async def _update_version_in_questionnaire(
+    api_url: str,
+    project_uuid: str,
+    user_token: str,
+    version: str,
+    description: str,
+) -> None:
     async with httpx.AsyncClient() as client:
         wizard = APIClient(
             api_url=api_url,
@@ -89,7 +103,9 @@ async def _update_version_in_questionnaire(api_url: str, project_uuid: str, user
         )
 
 
-async def save_version(api_url: str, req: schemas.VersionRequest) -> schemas.VersionSaveResponse:
+async def save_version(
+    api_url: str, req: schemas.VersionRequest
+) -> schemas.VersionSaveResponse:
     async with httpx.AsyncClient() as client:
         wizard = APIClient(
             api_url=api_url,
@@ -107,18 +123,25 @@ async def save_version(api_url: str, req: schemas.VersionRequest) -> schemas.Ver
                 description=req.description,
                 event_uuid=event_uuid,
             )
-        except Exception as e:
+        except (
+            httpx.HTTPError,
+            websocket.WebSocketException,
+            ValueError,
+            KeyError,
+        ) as e:
             return schemas.VersionSaveResponse(
                 ok=False,
-                message=f'Failed to submit version: {str(e)}'
+                message=f'Failed to submit version: {e!s}',
             )
         return schemas.VersionSaveResponse(
             ok=True,
-            message=f'Version {req.version} submitted successfully'
+            message=f'Version {req.version} submitted successfully',
         )
 
 
-async def submit_version(api_url: str, req: schemas.VersionRequest) -> schemas.VersionSubmitResponse:
+async def submit_version(
+    api_url: str, req: schemas.VersionRequest
+) -> schemas.VersionSubmitResponse:
     async with httpx.AsyncClient() as client:
         wizard = APIClient(
             api_url=api_url,
@@ -139,7 +162,10 @@ async def submit_version(api_url: str, req: schemas.VersionRequest) -> schemas.V
             project = await wizard.fetch_questionnaire(
                 project_uuid=req.project_uuid,
             )
-            document_template_id, format_uuid = await wizard.get_document_template_and_format(
+            (
+                document_template_id,
+                format_uuid,
+            ) = await wizard.get_document_template_and_format(
                 project=project,
             )
             document_new = await wizard.create_document(
@@ -156,8 +182,8 @@ async def submit_version(api_url: str, req: schemas.VersionRequest) -> schemas.V
                 return schemas.VersionSubmitResponse(
                     ok=True,
                     message='Document could not be created',
-                    documentDone=False,
-                    documentUuid=document_done.get('uuid', None),
+                    document_done=False,
+                    document_uuid=document_done.get('uuid', None),
                 )
             submission = await wizard.submit_document(
                 document=document_done,
@@ -166,29 +192,38 @@ async def submit_version(api_url: str, req: schemas.VersionRequest) -> schemas.V
             return schemas.VersionSubmitResponse(
                 ok=True,
                 message='Version submitted successfully',
-                documentDone=True,
-                documentUuid=document_done.get('uuid', None),
-                submissionDone=submission.get('state', '') == 'DoneSubmissionState',
-                submissionUuid=submission.get('uuid', None),
-                submissionLocation=submission.get('location', None),
+                document_done=True,
+                document_uuid=document_done.get('uuid', None),
+                submission_done=submission.get('state', '')
+                == 'DoneSubmissionState',
+                submission_uuid=submission.get('uuid', None),
+                submission_location=submission.get('location', None),
             )
-        except Exception as e:
+        except (
+            httpx.HTTPError,
+            websocket.WebSocketException,
+            ValueError,
+            KeyError,
+        ) as e:
             return schemas.VersionSubmitResponse(
                 ok=False,
-                message=f'Failed to submit version due to error: {str(e)}'
+                message=f'Failed to submit version due to error: {e!s}',
             )
 
 
 class APIClient:
-
-    def __init__(self, api_url: str, user_token: str, client: httpx.AsyncClient):
+    def __init__(
+        self, api_url: str, user_token: str, client: httpx.AsyncClient
+    ) -> None:
         self.api_url = api_url
         self.user_token = user_token
         self.client = client
-        self.client.headers.update({
-            'Authorization': f'Bearer {user_token}',
-            'User-Agent': USER_AGENT,
-        })
+        self.client.headers.update(
+            {
+                'Authorization': f'Bearer {user_token}',
+                'User-Agent': USER_AGENT,
+            }
+        )
         self.client.timeout = 10.0
         self.client.base_url = api_url.rstrip('/')
 
@@ -216,8 +251,9 @@ class APIClient:
         response.raise_for_status()
         return response.json().get('signalBridge', {}).get('webSocketUrl', None)
 
-    async def create_project_version(self, project_uuid: str, event_uuid: str,
-                                     version: str, description: str) -> dict:
+    async def create_project_version(
+        self, project_uuid: str, event_uuid: str, version: str, description: str
+    ) -> dict:
         response = await self.client.post(
             url=f'/projects/{project_uuid}/versions',
             json={
@@ -229,7 +265,9 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
-    async def get_document_template_and_format(self, project: dict) -> tuple[str, str]:
+    async def get_document_template_and_format(
+        self, project: dict
+    ) -> tuple[str, str]:
         km_package_id = project.get('knowledgeModelPackageId', '')
         response = await self.client.get(
             url='/document-templates/suggestions',
@@ -241,7 +279,9 @@ class APIClient:
             },
         )
         response.raise_for_status()
-        for template in response.json().get('_embedded', {}).get('documentTemplates', []):
+        for template in (
+            response.json().get('_embedded', {}).get('documentTemplates', [])
+        ):
             template_id = template.get('id', '')
             if template_id.startswith(NANOPUB_TEMPLATE_PREFIX):
                 format_uuid = ''
@@ -252,10 +292,18 @@ class APIClient:
                 if not format_uuid:
                     continue
                 return template_id, format_uuid
-        raise ValueError('No suitable nanopublication document template found')
+        message = 'No suitable nanopublication document template found'
+        raise ValueError(message)
 
-    async def create_document(self, *, project: dict, document_template_id: str,
-                              format_uuid: str, version: str, event_uuid: str) -> dict:
+    async def create_document(
+        self,
+        *,
+        project: dict,
+        document_template_id: str,
+        format_uuid: str,
+        version: str,
+        event_uuid: str,
+    ) -> dict:
         project_uuid = project.get('uuid', '')
         project_name = project.get('name', 'Unnamed Project')
         document_name = f'{project_name} (v{version})'
@@ -297,18 +345,26 @@ class APIClient:
             )
             response.raise_for_status()
             document_data = None
-            documents = response.json().get('_embedded', {}).get('documents', [])
+            documents = (
+                response.json().get('_embedded', {}).get('documents', [])
+            )
             for doc in documents:
                 if doc.get('uuid', '') == document_uuid:
                     document_data = doc
                     break
             if not document_data:
-                raise ValueError('Document not found after creation')
-            if document_data.get('state', '') in ('DoneDocumentState', 'ErrorDocumentState'):
+                message = 'Document not found after creation'
+                raise ValueError(message)
+            if document_data.get('state', '') in {
+                'DoneDocumentState',
+                'ErrorDocumentState',
+            }:
                 return document_data
             await asyncio.sleep(5.0)
 
-    async def update_version_via_websocket(self, project_uuid: str, version: str) -> str:
+    async def update_version_via_websocket(
+        self, project_uuid: str, version: str
+    ) -> str:
         ws_url = await self.get_websocket_url()
         ws_params = {
             'Authorization': f'Bearer {self.user_token}',
@@ -316,7 +372,8 @@ class APIClient:
             'identifier': project_uuid,
         }
         if not ws_url:
-            raise ValueError('WebSocket URL not found in FAIR Wizard config')
+            message = 'WebSocket URL not found in FAIR Wizard config'
+            raise ValueError(message)
         url = f'{ws_url}?{urllib.parse.urlencode(ws_params)}'
         ws = websocket.create_connection(
             url,
@@ -349,11 +406,15 @@ class APIClient:
 
 
 # Nanopublication network
-async def _find_fip_versions(submitted_versions: list[schemas.SubmittedVersion]):
+async def _find_fip_versions(
+    submitted_versions: list[schemas.SubmittedVersion],
+) -> None:
     async with httpx.AsyncClient() as client:
         for submitted_version in submitted_versions:
             try:
-                nanopub_rdf = await _fetch_fip_nanopublication(client, submitted_version.uri)
+                nanopub_rdf = await _fetch_fip_nanopublication(
+                    client, submitted_version.uri
+                )
                 version = extract_version(nanopub_rdf)
                 if version:
                     submitted_version.version = version
@@ -361,7 +422,9 @@ async def _find_fip_versions(submitted_versions: list[schemas.SubmittedVersion])
                 continue
 
 
-async def _fetch_fip_nanopublication(client: httpx.AsyncClient, uri: str) -> str:
+async def _fetch_fip_nanopublication(
+    client: httpx.AsyncClient, uri: str
+) -> str:
     response = await client.get(
         url=uri,
         headers={

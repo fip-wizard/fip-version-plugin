@@ -16,8 +16,12 @@ class SubmittedVersion(pydantic.BaseModel):
 class PrepareResponse(pydantic.BaseModel):
     ok: bool
     message: str | None = None
-    questionnaire_version: str | None = pydantic.Field(default=None, alias='questionnaireVersion')
-    submitted_versions: list = pydantic.Field(default_factory=list, alias='submittedVersions')
+    questionnaire_version: str | None = pydantic.Field(
+        default=None, alias='questionnaireVersion'
+    )
+    submitted_versions: list = pydantic.Field(
+        default_factory=list, alias='submittedVersions'
+    )
     debug: dict | None = None
 
 
@@ -27,7 +31,9 @@ class VersionRequest(pydantic.BaseModel):
     api_url: str = pydantic.Field(..., alias='apiUrl')
     version: str
     description: str = pydantic.Field(default='')
-    submission_service_id: str | None = pydantic.Field(default=None, alias='submissionServiceId')
+    submission_service_id: str | None = pydantic.Field(
+        default=None, alias='submissionServiceId'
+    )
 
 
 class VersionSaveResponse(pydantic.BaseModel):
@@ -39,7 +45,15 @@ class VersionSubmitResponse(pydantic.BaseModel):
     ok: bool
     message: str | None = None
     document_done: bool = pydantic.Field(default=False, alias='documentDone')
-    document_uuid: str | None = pydantic.Field(default=None, alias='documentUuid')
-    submission_done: bool = pydantic.Field(default=False, alias='submissionDone')
-    submission_uuid: str | None = pydantic.Field(default=None, alias='submissionUuid')
-    submission_location: str | None = pydantic.Field(default=None, alias='submissionLocation')
+    document_uuid: str | None = pydantic.Field(
+        default=None, alias='documentUuid'
+    )
+    submission_done: bool = pydantic.Field(
+        default=False, alias='submissionDone'
+    )
+    submission_uuid: str | None = pydantic.Field(
+        default=None, alias='submissionUuid'
+    )
+    submission_location: str | None = pydantic.Field(
+        default=None, alias='submissionLocation'
+    )

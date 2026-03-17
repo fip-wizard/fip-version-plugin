@@ -19,15 +19,23 @@ def create_app() -> fastapi.FastAPI:
     )
 
     @app.post('/api/prepare-action', response_model=schemas.PrepareResponse)
-    async def prepare_action(req: schemas.PrepareRequest) -> schemas.PrepareResponse:
+    async def prepare_action(
+        req: schemas.PrepareRequest,
+    ) -> schemas.PrepareResponse:
         return await logic.prepare_action(req.api_url, req)
 
     @app.post('/api/save-version', response_model=schemas.VersionSaveResponse)
-    async def save_version(req: schemas.VersionRequest) -> schemas.VersionSaveResponse:
+    async def save_version(
+        req: schemas.VersionRequest,
+    ) -> schemas.VersionSaveResponse:
         return await logic.save_version(req.api_url, req)
 
-    @app.post('/api/submit-version', response_model=schemas.VersionSubmitResponse)
-    async def submit_version(req: schemas.VersionRequest) -> schemas.VersionSubmitResponse:
+    @app.post(
+        '/api/submit-version', response_model=schemas.VersionSubmitResponse
+    )
+    async def submit_version(
+        req: schemas.VersionRequest,
+    ) -> schemas.VersionSubmitResponse:
         return await logic.submit_version(req.api_url, req)
 
     return app

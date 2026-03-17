@@ -50,6 +50,7 @@ ignore = [
     "D",
     "CPY",
     "PGH003",
+    "COM812",
 ]
 preview = true
 
