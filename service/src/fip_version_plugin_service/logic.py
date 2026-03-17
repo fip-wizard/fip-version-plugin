@@ -20,7 +20,8 @@ RDF_RFIP_TYPE = rdflib.URIRef(
 )
 RDF_VERSION = rdflib.URIRef('https://schema.org/version')
 USER_AGENT = 'fip-version-plugin/0.1.0'
-NANOPUB_TEMPLATE_PREFIX = 'dsw:nanopub-template:'
+NANOPUB_TEMPLATE_ORG_ID = 'dsw'
+NANOPUB_TEMPLATE_TPL_ID = 'nanopub-template'
 
 
 async def prepare_action(
@@ -163,14 +164,14 @@ async def submit_version(
                 project_uuid=req.project_uuid,
             )
             (
-                document_template_id,
+                document_template_uuid,
                 format_uuid,
             ) = await wizard.get_document_template_and_format(
                 project=project,
             )
             document_new = await wizard.create_document(
                 project=project,
-                document_template_id=document_template_id,
+                document_template_uuid=document_template_uuid,
                 format_uuid=format_uuid,
                 version=req.version,
                 event_uuid=event_uuid,
@@ -268,13 +269,13 @@ class APIClient:
     async def get_document_template_and_format(
         self, project: dict
     ) -> tuple[str, str]:
-        km_package_id = project.get('knowledgeModelPackageId', '')
+        km_uuid = project.get('knowledgeModelPackage', {}).get('uuid', '')
         response = await self.client.get(
             url='/document-templates/suggestions',
             params={
                 'page': 0,
                 'size': 20,
-                'pkgId': km_package_id,
+                'knowledgeModelPackageUuid': km_uuid,
                 'phase': 'ReleasedDocumentTemplatePhase',
             },
         )
@@ -282,8 +283,11 @@ class APIClient:
         for template in (
             response.json().get('_embedded', {}).get('documentTemplates', [])
         ):
-            template_id = template.get('id', '')
-            if template_id.startswith(NANOPUB_TEMPLATE_PREFIX):
+            org_id = template.get('organizationId', '')
+            tpl_id = template.get('templateId', '')
+            template_uuid = template.get('uuid', '')
+            if (org_id == NANOPUB_TEMPLATE_ORG_ID and
+                    tpl_id == NANOPUB_TEMPLATE_TPL_ID):
                 format_uuid = ''
                 for fmt in template.get('formats', []):
                     if fmt.get('name', '') == 'RDF TriG':
@@ -291,7 +295,7 @@ class APIClient:
                         break
                 if not format_uuid:
                     continue
-                return template_id, format_uuid
+                return template_uuid, format_uuid
         message = 'No suitable nanopublication document template found'
         raise ValueError(message)
 
@@ -299,7 +303,7 @@ class APIClient:
         self,
         *,
         project: dict,
-        document_template_id: str,
+        document_template_uuid: str,
         format_uuid: str,
         version: str,
         event_uuid: str,
@@ -312,7 +316,7 @@ class APIClient:
             json={
                 'name': document_name,
                 'projectUuid': project_uuid,
-                'documentTemplateId': document_template_id,
+                'documentTemplateUuid': document_template_uuid,
                 'formatUuid': format_uuid,
                 'projectEventUuid': event_uuid,
             },
