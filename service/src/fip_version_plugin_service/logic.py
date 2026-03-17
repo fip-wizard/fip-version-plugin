@@ -65,7 +65,7 @@ async def prepare_action(
                     schemas.SubmittedVersion(
                         uri=submission.get('location', ''),
                         version=None,
-                        submitted_at=submission.get('createdAt', None),
+                        submittedAt=submission.get('createdAt', None),
                     ),
                 )
         await _find_fip_versions(submitted_versions)
@@ -73,7 +73,7 @@ async def prepare_action(
         return schemas.PrepareResponse(
             ok=True,
             message='Action is ready',
-            questionnaire_version=questionnaire_version,
+            questionnaireVersion=questionnaire_version,
             submittedVersions=submitted_versions,
             debug=questionnaire_data,
         )
@@ -183,8 +183,8 @@ async def submit_version(
                 return schemas.VersionSubmitResponse(
                     ok=True,
                     message='Document could not be created',
-                    document_done=False,
-                    document_uuid=document_done.get('uuid', None),
+                    documentDone=False,
+                    documentUuid=document_done.get('uuid', None),
                 )
             submission = await wizard.submit_document(
                 document=document_done,
@@ -193,12 +193,12 @@ async def submit_version(
             return schemas.VersionSubmitResponse(
                 ok=True,
                 message='Version submitted successfully',
-                document_done=True,
-                document_uuid=document_done.get('uuid', None),
-                submission_done=submission.get('state', '')
+                documentDone=True,
+                documentUuid=document_done.get('uuid', None),
+                submissionDone=submission.get('state', '')
                 == 'DoneSubmissionState',
-                submission_uuid=submission.get('uuid', None),
-                submission_location=submission.get('location', None),
+                submissionUuid=submission.get('uuid', None),
+                submissionLocation=submission.get('location', None),
             )
         except (
             httpx.HTTPError,

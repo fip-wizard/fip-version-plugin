@@ -418,20 +418,6 @@ function ReadyStateBody({
                     fixes, number Y minor changes, and number X indicates a major change.
                 </p>
             </div>
-
-            {submittedVersions.length > 0 && (
-                <div>
-                    <div className="text-muted small mb-2">Submitted nanopublications</div>
-                    <ul className="mb-0 ps-3">
-                        {submittedVersions.map((item, index) => (
-                            <li key={`${item.uri}-${index}`}>
-                                {item.version || 'Unknown version'}
-                                {item.submittedAt ? ` (${formatDate(item.submittedAt)})` : ''}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
         </div>
     )
 }
