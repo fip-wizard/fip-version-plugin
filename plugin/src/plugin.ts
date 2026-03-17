@@ -11,21 +11,12 @@ import { pluginMetadata } from './metadata'
 export default function (settingsInput: unknown, _userSettingsInput: unknown): Plugin {
     const settings = SettingsDataCodec.parseOrInit(settingsInput)
 
-    const plugin: Plugin = PluginBuilder.create(
-        pluginMetadata,
-        SettingsDataCodec,
-        makeNullCodec(),
-    )
-        .addProjectAction(
-            'FIP Version',
-            'x-fip-version-project-action',
-            FIPVersionProjectAction,
-            [
-                'gofair:FIP:^5',
-                'gofair:reference-fip:^1',
-                ...parseExtraKmPatterns(settings),
-            ],
-        )
+    const plugin: Plugin = PluginBuilder.create(pluginMetadata, SettingsDataCodec, makeNullCodec())
+        .addProjectAction('FIP Version', 'x-fip-version-project-action', FIPVersionProjectAction, [
+            'gofair:FIP:^5',
+            'gofair:reference-fip:^1',
+            ...parseExtraKmPatterns(settings),
+        ])
         .addSettings('x-fip-version-settings', SettingsComponent)
         .createPlugin()
 

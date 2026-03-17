@@ -11,9 +11,7 @@ import {
     VersionSubmitResponseSchema,
 } from './data'
 
-export async function prepareProjectAction(
-    project: ProjectData,
-): Promise<PrepareResponse> {
+export async function prepareProjectAction(project: ProjectData): Promise<PrepareResponse> {
     const { apiUrl, token } = getSession()
 
     const prepareRequest: PrepareRequest = {
@@ -87,11 +85,7 @@ function getSession(): { apiUrl: string; token: string } {
         throw new Error('Invalid FAIR Wizard session information')
     }
 
-    const apiUrl = resolveStringValue(session, [
-        ['apiUrl'],
-        ['api', 'url'],
-        ['wizardApiUrl'],
-    ])
+    const apiUrl = resolveStringValue(session, [['apiUrl'], ['api', 'url'], ['wizardApiUrl']])
     const token = resolveStringValue(session, [
         ['token'],
         ['token', 'value'],
@@ -168,7 +162,10 @@ async function requestJson<TSchema extends z.ZodTypeAny>(
 
     if (!res.ok) {
         const message =
-            payload && typeof payload === 'object' && 'message' in payload && typeof payload.message === 'string'
+            payload &&
+            typeof payload === 'object' &&
+            'message' in payload &&
+            typeof payload.message === 'string'
                 ? payload.message
                 : `Request failed with status ${res.status}`
         throw new Error(message)

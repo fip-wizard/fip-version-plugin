@@ -9,7 +9,11 @@ import { SettingsData } from '@/data/settings-data'
 import { PrepareResponse, SubmittedVersion } from './fip-version-project-action/data'
 import { FlashError } from './fip-version-project-action/FlashError'
 import { Loader } from './fip-version-project-action/Loader'
-import { prepareProjectAction, saveVersion, submitVersion } from './fip-version-project-action/requests'
+import {
+    prepareProjectAction,
+    saveVersion,
+    submitVersion,
+} from './fip-version-project-action/requests'
 
 type View = 'preparing' | 'ready' | 'saving' | 'submitting' | 'done' | 'error'
 type VersionParts = { major: string; minor: string; patch: string }
@@ -393,7 +397,8 @@ function ReadyStateBody({
                         >
                             {suggestions.minor}
                         </button>{' '}
-                        = if you updated some declarations resulting in <strong>minor</strong> changes,
+                        = if you updated some declarations resulting in <strong>minor</strong>{' '}
+                        changes,
                     </li>
                     <li>
                         <button
@@ -404,12 +409,13 @@ function ReadyStateBody({
                         >
                             {suggestions.patch}
                         </button>{' '}
-                        = if you just fixed some error such as typos to <strong>patch</strong> your FIP.
+                        = if you just fixed some error such as typos to <strong>patch</strong> your
+                        FIP.
                     </li>
                 </ul>
                 <p className="form-text text-muted mb-0">
-                    The version number is in format X.Y.Z. Increasing number Z indicates only some fixes, number Y
-                    minor changes, and number X indicates a major change.
+                    The version number is in format X.Y.Z. Increasing number Z indicates only some
+                    fixes, number Y minor changes, and number X indicates a major change.
                 </p>
             </div>
 
@@ -482,12 +488,18 @@ function VersionReadOnlyDisplay({
                     readOnly
                 />
             </div>
-            {!parsedVersion && <p className="form-text text-muted mb-0 mt-1">{version || emptyLabel}</p>}
+            {!parsedVersion && (
+                <p className="form-text text-muted mb-0 mt-1">{version || emptyLabel}</p>
+            )}
         </div>
     )
 }
 
-function computeSuggestions(version: string | null | undefined): { major: string; minor: string; patch: string } {
+function computeSuggestions(version: string | null | undefined): {
+    major: string
+    minor: string
+    patch: string
+} {
     const parsed = parseSemver(version)
     if (!parsed) {
         return DEFAULT_SUGGESTIONS

@@ -22,7 +22,8 @@ export default function SettingsComponent({
                     }
                 />
                 <p className="text-muted mt-2 mb-0">
-                    Submission Service ID used for submitting nanopublications. Default value is <code>nanopub</code>.
+                    Submission Service ID used for submitting nanopublications. Default value is{' '}
+                    <code>nanopub</code>.
                 </p>
             </div>
 
@@ -37,10 +38,11 @@ export default function SettingsComponent({
                     }
                 />
                 <p className="text-muted mt-2">
-                    FIP Version Importer works by default with knowledge models <code>gofair:FIP:^5</code> and
-                     <code>gofair:reference-fip:^1</code>. If you
-                    have additional knowledge models, you can add them here so that they can
-                    work with this plugin as well. Add one pattern per line.
+                    FIP Version Importer works by default with knowledge models{' '}
+                    <code>gofair:FIP:^5</code> and
+                    <code>gofair:reference-fip:^1</code>. If you have additional knowledge models,
+                    you can add them here so that they can work with this plugin as well. Add one
+                    pattern per line.
                 </p>
             </div>
         </div>
