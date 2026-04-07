@@ -1,11 +1,9 @@
 import asyncio
-import json
-import urllib.parse
+import time
 import uuid
 
 import httpx
 import rdflib
-import websocket
 
 from . import schemas
 
@@ -92,7 +90,7 @@ async def _update_version_in_questionnaire(
             user_token=user_token,
             client=client,
         )
-        event_uuid = await wizard.update_version_via_websocket(
+        event_uuid = await wizard.update_version_reply(
             project_uuid=project_uuid,
             version=version,
         )
@@ -114,10 +112,11 @@ async def save_version(
             client=client,
         )
         try:
-            event_uuid = await wizard.update_version_via_websocket(
+            event_uuid = await wizard.update_version_reply(
                 project_uuid=req.project_uuid,
                 version=req.version,
             )
+            time.sleep(2.0)
             await wizard.create_project_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
@@ -126,7 +125,6 @@ async def save_version(
             )
         except (
             httpx.HTTPError,
-            websocket.WebSocketException,
             ValueError,
             KeyError,
         ) as e:
@@ -150,10 +148,11 @@ async def submit_version(
             client=client,
         )
         try:
-            event_uuid = await wizard.update_version_via_websocket(
+            event_uuid = await wizard.update_version_reply(
                 project_uuid=req.project_uuid,
                 version=req.version,
             )
+            time.sleep(2.0)
             await wizard.create_project_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
@@ -202,7 +201,6 @@ async def submit_version(
             )
         except (
             httpx.HTTPError,
-            websocket.WebSocketException,
             ValueError,
             KeyError,
         ) as e:
@@ -242,15 +240,14 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
-    async def get_websocket_url(self) -> str | None:
-        response = await self.client.get(
-            url='/configs/bootstrap',
-            headers={
-                'User-Agent': USER_AGENT,
-            },
+    async def _send_project_event(self, project_uuid: str, event: dict) -> str | None:
+        response = await self.client.post(
+            url=f'/projects/{project_uuid}/events',
+            json=event,
         )
         response.raise_for_status()
-        return response.json().get('signalBridge', {}).get('webSocketUrl', None)
+        return event.get('uuid', None)
+
 
     async def create_project_version(
         self, project_uuid: str, event_uuid: str, version: str, description: str
@@ -263,6 +260,7 @@ class APIClient:
                 'description': description,
             },
         )
+        print(response.text)
         response.raise_for_status()
         return response.json()
 
@@ -366,48 +364,22 @@ class APIClient:
                 return document_data
             await asyncio.sleep(5.0)
 
-    async def update_version_via_websocket(
+    async def update_version_reply(
         self, project_uuid: str, version: str
     ) -> str:
-        ws_url = await self.get_websocket_url()
-        ws_params = {
-            'Authorization': f'Bearer {self.user_token}',
-            'subscription': 'Project',
-            'identifier': project_uuid,
+        event = {
+            'type': 'SetReplyEvent',
+            'uuid': str(uuid.uuid4()),
+            'path': VERSION_REPLY_PATH,
+            'value': {
+                'type': 'StringReply',
+                'value': version,
+            },
         }
-        if not ws_url:
-            message = 'WebSocket URL not found in FAIR Wizard config'
-            raise ValueError(message)
-        url = f'{ws_url}?{urllib.parse.urlencode(ws_params)}'
-        ws = websocket.create_connection(
-            url,
-            headers={
-                'Origin': self.api_url.replace('wizard-api', 'wizard'),
-                'User-Agent': 'python-websocket',
-            },
-        )
-        ws.recv()
-        event_uuid = str(uuid.uuid4())
-        events = [
-            {
-                'type': 'SetContent_ClientProjectMessage',
-                'data': {
-                    'type': 'SetReplyEvent',
-                    'uuid': event_uuid,
-                    'path': VERSION_REPLY_PATH,
-                    'value': {
-                        'type': 'StringReply',
-                        'value': version,
-                    },
-                },
-            },
-        ]
-        for event in events:
-            ws.send(json.dumps(event))
-            ws.recv()
-        ws.close()
+        event_uuid = await self._send_project_event(project_uuid=project_uuid, event=event)
+        if not event_uuid:
+            raise ValueError('Failed to send project event for version update')
         return event_uuid
-
 
 # Nanopublication network
 async def _find_fip_versions(

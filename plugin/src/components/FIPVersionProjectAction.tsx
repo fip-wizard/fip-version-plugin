@@ -1,5 +1,5 @@
 import { ProjectActionComponentProps } from '@ds-wizard/plugin-sdk/elements'
-import type { CSSProperties } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 
 import type { ModalAction } from '@/components/ProjectActionModal'
@@ -45,7 +45,7 @@ export default function FIPVersionProjectAction({
         semverToParts(DEFAULT_FORM_VERSION),
     )
     const [errorMessage, setErrorMessage] = useState('')
-    const [doneMessage, setDoneMessage] = useState('')
+    const [doneMessage, setDoneMessage] = useState<ReactNode>(null)
 
     useEffect(() => {
         async function runPrepare() {
@@ -120,7 +120,11 @@ export default function FIPVersionProjectAction({
                 return
             }
 
-            setDoneMessage(`Version ${desiredVersion} has been saved successfully.`)
+            setDoneMessage(
+                <>
+                    Version <strong>{desiredVersion}</strong> has been saved successfully.
+                </>,
+            )
             setView('done')
         } catch (error) {
             setErrorMessage(getErrorMessage(error, 'Failed to save the version.'))
@@ -150,24 +154,48 @@ export default function FIPVersionProjectAction({
             }
 
             if (response.submissionDone) {
-                const message = response.submissionLocation
-                    ? `Version ${desiredVersion} has been submitted successfully. Nanopublication: ${response.submissionLocation}`
-                    : `Version ${desiredVersion} has been submitted successfully.`
-                setDoneMessage(message)
+                setDoneMessage(
+                    response.submissionLocation ? (
+                        <>
+                            Version <strong>{desiredVersion}</strong> has been submitted
+                            successfully. Nanopublication:{' '}
+                            <a
+                                href={response.submissionLocation}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {response.submissionLocation}
+                            </a>
+                        </>
+                    ) : (
+                        <>
+                            Version <strong>{desiredVersion}</strong> has been submitted
+                            successfully.
+                        </>
+                    ),
+                )
                 setView('done')
                 return
             }
 
             if (response.documentDone) {
                 setDoneMessage(
-                    `Version ${desiredVersion} was saved and the RDF document was generated, but submission was not completed. Check the Documents tab for details.`,
+                    <>
+                        Version <strong>{desiredVersion}</strong> was saved and the RDF
+                        document was generated, but submission was not completed. Check
+                        the Documents tab for details.
+                    </>,
                 )
                 setView('done')
                 return
             }
 
             setDoneMessage(
-                `Version ${desiredVersion} was saved, but document generation or submission did not complete. Check the Documents tab for details.`,
+                <>
+                    Version <strong>{desiredVersion}</strong> was saved, but document
+                    generation or submission did not complete. Check the Documents tab
+                    for details.
+                </>,
             )
             setView('done')
         } catch (error) {
@@ -233,7 +261,7 @@ export default function FIPVersionProjectAction({
             label: 'Retry',
             onClick: () => {
                 setPrepareData(null)
-                setDoneMessage('')
+                setDoneMessage(null)
                 setErrorMessage('')
                 setView('preparing')
                 setReloadKey((current) => current + 1)
