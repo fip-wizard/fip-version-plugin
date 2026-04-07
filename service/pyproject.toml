@@ -1,6 +1,6 @@
 [project]
 name = "fip-version-plugin-service"
-version = "0.3.0"
+version = "0.2.1"
 description = "Plugin Service for FIP Version Plugin"
 keywords = ["wizard", "plugin", "fip", "version", "project-action"]
 license = "MIT"

@@ -1,9 +1,11 @@
 import asyncio
-import time
+import json
+import urllib.parse
 import uuid
 
 import httpx
 import rdflib
+import websocket
 
 from . import schemas
 
@@ -18,8 +20,7 @@ RDF_RFIP_TYPE = rdflib.URIRef(
 )
 RDF_VERSION = rdflib.URIRef('https://schema.org/version')
 USER_AGENT = 'fip-version-plugin/0.1.0'
-NANOPUB_TEMPLATE_ORG_ID = 'dsw'
-NANOPUB_TEMPLATE_TPL_ID = 'nanopub-template'
+NANOPUB_TEMPLATE_PREFIX = 'dsw:nanopub-template:'
 
 
 async def prepare_action(
@@ -90,7 +91,7 @@ async def _update_version_in_questionnaire(
             user_token=user_token,
             client=client,
         )
-        event_uuid = await wizard.update_version_reply(
+        event_uuid = await wizard.update_version_via_websocket(
             project_uuid=project_uuid,
             version=version,
         )
@@ -112,11 +113,10 @@ async def save_version(
             client=client,
         )
         try:
-            event_uuid = await wizard.update_version_reply(
+            event_uuid = await wizard.update_version_via_websocket(
                 project_uuid=req.project_uuid,
                 version=req.version,
             )
-            time.sleep(2.0)
             await wizard.create_project_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
@@ -125,6 +125,7 @@ async def save_version(
             )
         except (
             httpx.HTTPError,
+            websocket.WebSocketException,
             ValueError,
             KeyError,
         ) as e:
@@ -148,11 +149,10 @@ async def submit_version(
             client=client,
         )
         try:
-            event_uuid = await wizard.update_version_reply(
+            event_uuid = await wizard.update_version_via_websocket(
                 project_uuid=req.project_uuid,
                 version=req.version,
             )
-            time.sleep(2.0)
             await wizard.create_project_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
@@ -163,14 +163,14 @@ async def submit_version(
                 project_uuid=req.project_uuid,
             )
             (
-                document_template_uuid,
+                document_template_id,
                 format_uuid,
             ) = await wizard.get_document_template_and_format(
                 project=project,
             )
             document_new = await wizard.create_document(
                 project=project,
-                document_template_uuid=document_template_uuid,
+                document_template_id=document_template_id,
                 format_uuid=format_uuid,
                 version=req.version,
                 event_uuid=event_uuid,
@@ -201,6 +201,7 @@ async def submit_version(
             )
         except (
             httpx.HTTPError,
+            websocket.WebSocketException,
             ValueError,
             KeyError,
         ) as e:
@@ -240,14 +241,15 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
-    async def _send_project_event(self, project_uuid: str, event: dict) -> str | None:
-        response = await self.client.post(
-            url=f'/projects/{project_uuid}/events',
-            json=event,
+    async def get_websocket_url(self) -> str | None:
+        response = await self.client.get(
+            url='/configs/bootstrap',
+            headers={
+                'User-Agent': USER_AGENT,
+            },
         )
         response.raise_for_status()
-        return event.get('uuid', None)
-
+        return response.json().get('signalBridge', {}).get('webSocketUrl', None)
 
     async def create_project_version(
         self, project_uuid: str, event_uuid: str, version: str, description: str
@@ -260,7 +262,6 @@ class APIClient:
                 'description': description,
             },
         )
-        print(response.text)
         response.raise_for_status()
         return response.json()
 
@@ -281,11 +282,8 @@ class APIClient:
         for template in (
             response.json().get('_embedded', {}).get('documentTemplates', [])
         ):
-            org_id = template.get('organizationId', '')
-            tpl_id = template.get('templateId', '')
-            template_uuid = template.get('uuid', '')
-            if (org_id == NANOPUB_TEMPLATE_ORG_ID and
-                    tpl_id == NANOPUB_TEMPLATE_TPL_ID):
+            template_id = template.get('id', '')
+            if template_id.startswith(NANOPUB_TEMPLATE_PREFIX):
                 format_uuid = ''
                 for fmt in template.get('formats', []):
                     if fmt.get('name', '') == 'RDF TriG':
@@ -293,7 +291,7 @@ class APIClient:
                         break
                 if not format_uuid:
                     continue
-                return template_uuid, format_uuid
+                return template_id, format_uuid
         message = 'No suitable nanopublication document template found'
         raise ValueError(message)
 
@@ -301,7 +299,7 @@ class APIClient:
         self,
         *,
         project: dict,
-        document_template_uuid: str,
+        document_template_id: str,
         format_uuid: str,
         version: str,
         event_uuid: str,
@@ -314,7 +312,7 @@ class APIClient:
             json={
                 'name': document_name,
                 'projectUuid': project_uuid,
-                'documentTemplateUuid': document_template_uuid,
+                'documentTemplateId': document_template_id,
                 'formatUuid': format_uuid,
                 'projectEventUuid': event_uuid,
             },
@@ -364,22 +362,48 @@ class APIClient:
                 return document_data
             await asyncio.sleep(5.0)
 
-    async def update_version_reply(
+    async def update_version_via_websocket(
         self, project_uuid: str, version: str
     ) -> str:
-        event = {
-            'type': 'SetReplyEvent',
-            'uuid': str(uuid.uuid4()),
-            'path': VERSION_REPLY_PATH,
-            'value': {
-                'type': 'StringReply',
-                'value': version,
-            },
+        ws_url = await self.get_websocket_url()
+        ws_params = {
+            'Authorization': f'Bearer {self.user_token}',
+            'subscription': 'Project',
+            'identifier': project_uuid,
         }
-        event_uuid = await self._send_project_event(project_uuid=project_uuid, event=event)
-        if not event_uuid:
-            raise ValueError('Failed to send project event for version update')
+        if not ws_url:
+            message = 'WebSocket URL not found in FAIR Wizard config'
+            raise ValueError(message)
+        url = f'{ws_url}?{urllib.parse.urlencode(ws_params)}'
+        ws = websocket.create_connection(
+            url,
+            headers={
+                'Origin': self.api_url.replace('wizard-api', 'wizard'),
+                'User-Agent': 'python-websocket',
+            },
+        )
+        ws.recv()
+        event_uuid = str(uuid.uuid4())
+        events = [
+            {
+                'type': 'SetContent_ClientProjectMessage',
+                'data': {
+                    'type': 'SetReplyEvent',
+                    'uuid': event_uuid,
+                    'path': VERSION_REPLY_PATH,
+                    'value': {
+                        'type': 'StringReply',
+                        'value': version,
+                    },
+                },
+            },
+        ]
+        for event in events:
+            ws.send(json.dumps(event))
+            ws.recv()
+        ws.close()
         return event_uuid
+
 
 # Nanopublication network
 async def _find_fip_versions(

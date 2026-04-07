@@ -1,6 +1,6 @@
 {
   "name": "fip-version-plugin",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Plugin for FAIR Wizard to enable easier FIP version management and submission",
   "license": "MIT",
   "author": "Marek Suchánek",
@@ -37,7 +37,7 @@
     "vite": "^7.3.0"
   },
   "dependencies": {
-    "@ds-wizard/plugin-sdk": "^0.7.0",
+    "@ds-wizard/plugin-sdk": "^0.6.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "zod": "^4.3.5"
