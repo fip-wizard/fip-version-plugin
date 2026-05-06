@@ -1,5 +1,4 @@
 import asyncio
-import time
 import uuid
 
 import httpx
@@ -116,7 +115,7 @@ async def save_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
             )
-            time.sleep(2.0)
+            await asyncio.sleep(2.0)
             await wizard.create_project_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
@@ -152,7 +151,7 @@ async def submit_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
             )
-            time.sleep(2.0)
+            await asyncio.sleep(2.0)
             await wizard.create_project_version(
                 project_uuid=req.project_uuid,
                 version=req.version,
@@ -240,14 +239,15 @@ class APIClient:
         response.raise_for_status()
         return response.json()
 
-    async def _send_project_event(self, project_uuid: str, event: dict) -> str | None:
+    async def _send_project_event(
+            self, project_uuid: str, event: dict
+    ) -> str | None:
         response = await self.client.post(
             url=f'/projects/{project_uuid}/events',
             json=event,
         )
         response.raise_for_status()
-        return event.get('uuid', None)
-
+        return event.get('uuid')
 
     async def create_project_version(
         self, project_uuid: str, event_uuid: str, version: str, description: str
@@ -260,7 +260,6 @@ class APIClient:
                 'description': description,
             },
         )
-        print(response.text)
         response.raise_for_status()
         return response.json()
 
@@ -376,10 +375,15 @@ class APIClient:
                 'value': version,
             },
         }
-        event_uuid = await self._send_project_event(project_uuid=project_uuid, event=event)
+        event_uuid = await self._send_project_event(
+            project_uuid=project_uuid,
+            event=event,
+        )
         if not event_uuid:
-            raise ValueError('Failed to send project event for version update')
+            msg = 'Failed to send project event for version update'
+            raise ValueError(msg)
         return event_uuid
+
 
 # Nanopublication network
 async def _find_fip_versions(

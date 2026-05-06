@@ -159,11 +159,7 @@ export default function FIPVersionProjectAction({
                         <>
                             Version <strong>{desiredVersion}</strong> has been submitted
                             successfully. Nanopublication:{' '}
-                            <a
-                                href={response.submissionLocation}
-                                target="_blank"
-                                rel="noreferrer"
-                            >
+                            <a href={response.submissionLocation} target="_blank" rel="noreferrer">
                                 {response.submissionLocation}
                             </a>
                         </>
@@ -181,9 +177,9 @@ export default function FIPVersionProjectAction({
             if (response.documentDone) {
                 setDoneMessage(
                     <>
-                        Version <strong>{desiredVersion}</strong> was saved and the RDF
-                        document was generated, but submission was not completed. Check
-                        the Documents tab for details.
+                        Version <strong>{desiredVersion}</strong> was saved and the RDF document was
+                        generated, but submission was not completed. Check the Documents tab for
+                        details.
                     </>,
                 )
                 setView('done')
@@ -192,9 +188,8 @@ export default function FIPVersionProjectAction({
 
             setDoneMessage(
                 <>
-                    Version <strong>{desiredVersion}</strong> was saved, but document
-                    generation or submission did not complete. Check the Documents tab
-                    for details.
+                    Version <strong>{desiredVersion}</strong> was saved, but document generation or
+                    submission did not complete. Check the Documents tab for details.
                 </>,
             )
             setView('done')
