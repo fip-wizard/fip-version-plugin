@@ -1,6 +1,6 @@
 {
   "name": "fip-version-plugin",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Plugin for FAIR Wizard to enable easier FIP version management and submission",
   "license": "MIT",
   "author": "Marek Suchánek",

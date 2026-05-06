@@ -10,6 +10,18 @@ See the [Plugins](https://guide.ds-wizard.org/en/latest/more/self-hosted-dsw/con
 
 ## Changelog
 
+### 0.3.0
+
+- Update for API v4.29.0
+
+### 0.2.1
+
+- Backported update for API v4.28.0
+
+### 0.2.0
+
+- Fixed submitted nanopublication listing
+
 ### 0.1.0
 
 Initial version based on previous [project action](https://github.com/fip-wizard/fip-version-project-action).
