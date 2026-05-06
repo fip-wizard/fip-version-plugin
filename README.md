@@ -10,6 +10,11 @@ See the [Plugins](https://guide.ds-wizard.org/en/latest/more/self-hosted-dsw/con
 
 ## Changelog
 
+### 1.0.0
+
+- Updated dependencies
+- Update for API v4.30.0
+
 ### 0.3.0
 
 - Update for API v4.29.0
