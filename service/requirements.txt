@@ -8,7 +8,7 @@ anyio==4.12.1
     # via starlette
 fastapi==0.136.1
     # via plugin-service (pyproject.toml)
-idna==3.11
+idna==3.13
     # via anyio
 pydantic==2.12.5
     # via fastapi
