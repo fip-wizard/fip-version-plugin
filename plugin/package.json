@@ -1,45 +1,48 @@
 {
-  "name": "fip-version-plugin",
-  "version": "1.0.0",
-  "description": "Plugin for FAIR Wizard to enable easier FIP version management and submission",
-  "license": "MIT",
-  "author": "Marek Suchánek",
-  "type": "module",
-  "scripts": {
-    "build": "npm run typecheck && npm run lint && npm run build:prod",
-    "build:dev": "vite build --mode development",
-    "build:prod": "vite build --mode production",
-    "build:watch": "vite build --watch --mode development",
-    "dev": "concurrently -k \"npm run build:watch\" \"npm run serve:dist\"",
-    "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\" && eslint src --fix",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\"",
-    "lint": "eslint src",
-    "serve:dist": "vite preview --strictPort --port 4173",
-    "typecheck": "tsc --noEmit"
-  },
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3",
-    "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@typescript-eslint/parser": "^8.59.2",
-    "@vitejs/plugin-react": "^6.0.1",
-    "concurrently": "^9.2.1",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-simple-import-sort": "^13.0.0",
-    "globals": "^17.6.0",
-    "prettier": "^3.8.3",
-    "terser": "^5.46.2",
-    "typescript": "^6.0.3",
-    "vite": "^8.0.10"
-  },
-  "dependencies": {
-    "@ds-wizard/plugin-sdk": "^0.9.1",
-    "react": "^19.2.5",
-    "react-dom": "^19.2.5",
-    "zod": "^4.4.3"
-  }
+    "name": "fip-version-plugin",
+    "version": "1.0.0",
+    "description": "Plugin for FAIR Wizard to enable easier FIP version management and submission",
+    "license": "MIT",
+    "author": "Marek Suchánek",
+    "type": "module",
+    "scripts": {
+        "build": "npm run typecheck && npm run lint && npm run build:prod",
+        "build:dev": "vite build --mode development",
+        "build:prod": "vite build --mode production",
+        "build:watch": "vite build --watch --mode development",
+        "dev": "concurrently -k \"npm run build:watch\" \"npm run serve:dist\"",
+        "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json}\" && eslint src --fix",
+        "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json}\"",
+        "lint": "eslint src",
+        "serve:dist": "vite preview --strictPort --port 4173",
+        "typecheck": "tsc --noEmit"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@types/node": "^26.6.4",
+        "@types/react": "^19.3.0",
+        "@types/react-dom": "^19.3.0",
+        "@typescript-eslint/eslint-plugin": "^8.71.1",
+        "@typescript-eslint/parser": "^8.71.1",
+        "@vitejs/plugin-react": "^6.1.2",
+        "concurrently": "^10.0.5",
+        "eslint": "^10.12.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-react-hooks": "^7.1.1",
+        "eslint-plugin-simple-import-sort": "^14.0.0",
+        "globals": "^17.13.0",
+        "prettier": "^3.9.9",
+        "terser": "^5.46.2",
+        "typescript": "~6.0.3",
+        "vite": "^8.3.3"
+    },
+    "dependencies": {
+        "@ds-wizard/plugin-sdk": "^0.12.0",
+        "react": "^19.3.0",
+        "react-dom": "^19.3.0",
+        "zod": "^4.6.5"
+    },
+    "overrides": {
+        "shell-quote": "^1.12.0"
+    }
 }
