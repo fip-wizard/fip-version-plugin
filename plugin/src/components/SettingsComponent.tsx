@@ -1,5 +1,7 @@
 import { SettingsComponentProps } from '@ds-wizard/plugin-sdk/elements'
-import React from 'react'
+import { TextareaField, TextField } from '@ds-wizard/plugin-sdk/ui/Field'
+import { Stack } from '@ds-wizard/plugin-sdk/ui/Layout'
+import { Code } from '@ds-wizard/plugin-sdk/ui/Text'
 
 import { SettingsData } from '@/data/settings-data'
 
@@ -10,41 +12,36 @@ export default function SettingsComponent({
     const rows = Math.min(12, Math.max(4, settings.extraKmPatterns.split('\n').length))
 
     return (
-        <div>
-            <div className="form-group mb-4">
-                <label htmlFor="submission-service-id">Submission Service ID:</label>
-                <input
-                    id="submission-service-id"
-                    className="form-control"
-                    value={settings.submissionServiceId}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                        onSettingsChange({ ...settings, submissionServiceId: e.target.value })
-                    }
-                />
-                <p className="text-muted mt-2 mb-0">
-                    Submission Service ID used for submitting nanopublications. Default value is{' '}
-                    <code>nanopub</code>.
-                </p>
-            </div>
-
-            <div className="form-group">
-                <label>Additional KM Patterns:</label>
-                <textarea
-                    className="form-control"
-                    rows={rows}
-                    value={settings.extraKmPatterns}
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                        onSettingsChange({ ...settings, extraKmPatterns: e.target.value })
-                    }
-                />
-                <p className="text-muted mt-2">
-                    FIP Version Importer works by default with knowledge models{' '}
-                    <code>gofair:FIP:^5</code> and
-                    <code>gofair:reference-fip:^1</code>. If you have additional knowledge models,
-                    you can add them here so that they can work with this plugin as well. Add one
-                    pattern per line.
-                </p>
-            </div>
-        </div>
+        <Stack>
+            <TextField
+                id="submission-service-id"
+                label="Submission Service ID"
+                value={settings.submissionServiceId}
+                onChange={(submissionServiceId) =>
+                    onSettingsChange({ ...settings, submissionServiceId })
+                }
+                hint={
+                    <>
+                        Submission Service ID used for submitting nanopublications. Default value is{' '}
+                        <Code>nanopub</Code>.
+                    </>
+                }
+            />
+            <TextareaField
+                id="extra-km-patterns"
+                label="Additional KM Patterns"
+                rows={rows}
+                value={settings.extraKmPatterns}
+                onChange={(extraKmPatterns) => onSettingsChange({ ...settings, extraKmPatterns })}
+                hint={
+                    <>
+                        FIP Version works by default with knowledge models{' '}
+                        <Code>gofair:FIP:^5</Code> and <Code>gofair:reference-fip:^1</Code>. If you
+                        have additional knowledge models, you can add them here so that they can
+                        work with this plugin as well. Add one pattern per line.
+                    </>
+                }
+            />
+        </Stack>
     )
 }
