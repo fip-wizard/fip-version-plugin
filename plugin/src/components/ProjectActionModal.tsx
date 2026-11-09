@@ -31,7 +31,12 @@ export function ProjectActionModal({
             <DialogHeader title={modalTitle} />
             <DialogBody>{modalBody}</DialogBody>
             <DialogFooter>
-                <Button variant="ghost" onClick={() => onActionClose()}>
+                {/* Close on the left, the dialog's own actions on the right */}
+                <Button
+                    variant="ghost"
+                    style={{ marginInlineEnd: 'auto' }}
+                    onClick={() => onActionClose()}
+                >
                     Close
                 </Button>
                 {modalSecondaryActions.map((action, index) => (
