@@ -1,4 +1,5 @@
 import { ProjectData } from '@ds-wizard/plugin-sdk'
+import { getApiUrlAndToken } from '@ds-wizard/plugin-sdk/requests'
 import { z } from 'zod'
 
 import {
@@ -73,64 +74,14 @@ export async function submitVersion(
 }
 
 function getSession(): { apiUrl: string; token: string } {
-    const sessionString = localStorage.getItem('session/wizard')
-    if (!sessionString) {
-        throw new Error('Missing FAIR Wizard session information')
-    }
-
-    let session: unknown
-    try {
-        session = JSON.parse(sessionString)
-    } catch {
-        throw new Error('Invalid FAIR Wizard session information')
-    }
-
-    const apiUrl = resolveStringValue(session, [['apiUrl'], ['api', 'url'], ['wizardApiUrl']])
-    const token = resolveStringValue(session, [
-        ['token'],
-        ['token', 'value'],
-        ['token', 'token'],
-        ['token', 'accessToken'],
-        ['auth', 'token'],
-        ['auth', 'accessToken'],
-        ['credentials', 'token'],
-        ['userToken'],
-    ])
-
+    // The wizard's API address and the signed-in user's token, from the
+    // wizard's own session; the service calls the API on the user's behalf
+    const { apiUrl, token } = getApiUrlAndToken()
     if (!apiUrl || !token) {
         throw new Error('Missing FAIR Wizard session information')
     }
 
     return { apiUrl, token }
-}
-
-function resolveStringValue(root: unknown, paths: string[][]): string | null {
-    for (const path of paths) {
-        let current: unknown = root
-        for (const key of path) {
-            if (!current || typeof current !== 'object') {
-                current = null
-                break
-            }
-            current = (current as Record<string, unknown>)[key]
-        }
-
-        const value = toTrimmedString(current)
-        if (value) {
-            return value
-        }
-    }
-
-    return null
-}
-
-function toTrimmedString(value: unknown): string | null {
-    if (typeof value !== 'string') {
-        return null
-    }
-
-    const trimmed = value.trim()
-    return trimmed ? trimmed : null
 }
 
 function normalizeOptionalString(value: string | null | undefined): string | null {
