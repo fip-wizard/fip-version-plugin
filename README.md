@@ -10,6 +10,12 @@ See the [Plugins](https://guide.ds-wizard.org/en/latest/more/self-hosted-dsw/con
 
 ## Changelog
 
+### 1.1.0
+
+- Update for FAIR Wizard 5.0 (Plugin SDK 0.12.0)
+- Updated UI to the FAIR Wizard 5.0 design system
+- Updated dependencies
+
 ### 1.0.0
 
 - Updated dependencies
