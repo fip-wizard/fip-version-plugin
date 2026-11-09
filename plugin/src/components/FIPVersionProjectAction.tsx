@@ -3,12 +3,13 @@ import { Alert } from '@ds-wizard/plugin-sdk/ui/Alert'
 import { AsyncBlock } from '@ds-wizard/plugin-sdk/ui/AsyncBlock'
 import { DescriptionList } from '@ds-wizard/plugin-sdk/ui/DescriptionList'
 import { FieldGroup, TextField } from '@ds-wizard/plugin-sdk/ui/Field'
-import { Inline, Stack } from '@ds-wizard/plugin-sdk/ui/Layout'
+import { Stack } from '@ds-wizard/plugin-sdk/ui/Layout'
 import { ActionLink, Link } from '@ds-wizard/plugin-sdk/ui/Link'
 import { List, ListItem } from '@ds-wizard/plugin-sdk/ui/ListItem'
 import { Body, Code, Muted } from '@ds-wizard/plugin-sdk/ui/Text'
+import { token } from '@ds-wizard/plugin-sdk/ui/tokens'
 import type { CSSProperties, ReactNode } from 'react'
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 
 import type { ModalAction } from '@/components/ProjectActionModal'
 import { ProjectActionModal } from '@/components/ProjectActionModal'
@@ -27,7 +28,14 @@ type VersionPartName = keyof VersionParts
 
 const DEFAULT_FORM_VERSION: [number, number, number] = [0, 1, 0]
 const EMPTY_DESCRIPTION = ''
-const VERSION_PART_STYLE: CSSProperties = { width: '6rem' }
+// The three parts of the version in one row: X . Y . Z
+const VERSION_ROW_STYLE: CSSProperties = {
+    display: 'flex',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+    gap: token('--ui-space-2'),
+}
+const VERSION_PART_STYLE: CSSProperties = { flex: '0 0 6rem', width: '6rem', margin: 0 }
 const DEFAULT_SUGGESTIONS = {
     major: '1.0.0',
     minor: '0.1.0',
@@ -346,10 +354,10 @@ function ReadyStateBody({
                 error={versionError}
                 hint="The version number is in format X.Y.Z. Increasing number Z indicates only some fixes, number Y minor changes, and number X indicates a major change."
             >
-                <Inline>
+                <div style={VERSION_ROW_STYLE}>
                     {(['major', 'minor', 'patch'] as VersionPartName[]).map((part, index) => (
-                        <Inline key={part}>
-                            {index > 0 && <Body aria-hidden>.</Body>}
+                        <Fragment key={part}>
+                            {index > 0 && <span aria-hidden>.</span>}
                             <TextField
                                 id={`version-${part}`}
                                 label={VERSION_PART_LABELS[part]}
@@ -359,9 +367,9 @@ function ReadyStateBody({
                                 value={versionParts[part]}
                                 onChange={(value) => onVersionPartChange(part, value)}
                             />
-                        </Inline>
+                        </Fragment>
                     ))}
-                </Inline>
+                </div>
             </FieldGroup>
 
             <Stack>
